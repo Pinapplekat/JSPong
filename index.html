@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,9 +9,43 @@
     <script src="script.js" defer></script>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
+    <div id="settingsMenu" style="display: none;">
+        <h2>Settings</h2>
+
+        <label>
+            AI Difficulty:
+            <select id="aiSelect">
+                <option value="easy">Easy</option>
+                <option value="normal">Normal</option>
+                <option value="hard">Hard</option>
+                <option value="impossible">Impossible</option>
+            </select>
+        </label>
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="twoPlayerToggle" />
+            <span>Two-Player Mode</span>
+        </label>
+        <br><br>
+
+        <label>
+            <input type="checkbox" id="muteToggle" />
+            <span>Mute SFX</span>
+        </label>
+        <br><br>
+
+        <button onclick="closeSettings()">Close</button>
+    </div>
+
+    <button id="openSettingsBtn" style="position: absolute; top: 10px; left: 10px;">Settings</button>
+
+
     <canvas id="canvas" height="1000">
         This text is displayed if your browser does not support HTML5 Canvas.
     </canvas>
 </body>
+
 </html>

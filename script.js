@@ -11,6 +11,31 @@ let gameOver = false;
 let muted = false;
 let twoPlayerMode = false;
 let pulseTimer = 0;
+let volume = 50;
+
+let settings = {
+    muted: false,
+    aiDifficulty: 'normal',
+    twoPlayerMode: false
+};
+
+function saveSettings() {
+    localStorage.setItem('pongSettings', JSON.stringify(settings));
+}
+
+const difficultySettings = {
+    easy: { leadFactor: 3, errorMargin: 80, speed: 5 },
+    normal: { leadFactor: 6, errorMargin: 45, speed: 8 },
+    hard: { leadFactor: 10, errorMargin: 15, speed: 12 },
+    impossible: { leadFactor: 1, errorMargin: 0, speed: 30 }
+};
+
+const savedDifficulty = localStorage.getItem('aiDifficulty');
+if (savedDifficulty && difficultySettings[savedDifficulty]) {
+    aiDifficulty = savedDifficulty;
+}
+
+loadSettings();
 
 const winningScore = 10;
 const blip = new Audio('blip.wav');
@@ -28,18 +53,18 @@ const keyStates = {
 
 
 const player = {
-    x: 15,
-    y: 0,
+    x: canvas.width / 4 - 15/2,
+    y: canvas.height / 2 - 15,
     width: 15,
-    height: 200,
+    height: 50,
     moveSpeed: 25
 };
 
 const ai = {
-    x: canvas.width - 30,
-    y: 0,
+    x: canvas.width / 4 * 2 + 15/2,
+    y: canvas.height / 2 - 15,
     width: 15,
-    height: 200,
+    height: 50,
     speed: 25
 };
 
@@ -57,12 +82,43 @@ const ball = {
     flashAlpha: 0
 };
 
+function setDifficulty(level) {
+    if (difficultySettings[level]) {
+        aiDifficulty = level;
+        localStorage.setItem('aiDifficulty', level);
+    }
+}
+
 function playSound() {
     if (!muted) {
         new Audio('blip.wav').play();
         pulseTimer = 10; // frames to pulse
     }
 }
+
+function loadSettings() {
+    const saved = localStorage.getItem('pongSettings');
+    if (saved) {
+        settings = JSON.parse(saved);
+    }else{
+        settings = {
+            muted: false,
+            aiDifficulty: 'normal',
+            twoPlayerMode: false,
+        };
+    }
+
+    muted = settings.muted;
+    document.getElementById('muteToggle').checked = muted;
+
+    aiDifficulty = settings.aiDifficulty;
+    document.getElementById('aiSelect').value = aiDifficulty;
+
+    twoPlayerMode = settings.twoPlayerMode;
+    document.getElementById('twoPlayerToggle').checked = twoPlayerMode;
+
+}
+
 
 function draw() {
     ctx.fillStyle = "#000";  // Dark background
@@ -83,6 +139,13 @@ function draw() {
     ctx.shadowBlur = 10;
     ctx.fillText(score, canvas.width / 2 - 100, 50);
     ctx.fillText(aiscore, canvas.width / 2 + 100, 50);
+    ctx.font = '35px Arial';
+    ctx.fillStyle = `rgba(255,255,255,0.4)`;
+    ctx.shadowColor = "white";
+    if (streak >= 5) ctx.fillStyle = `rgba(255,${255 - streak * 15 + 5},${255 - streak * 15 + 5},${0.4 + streak / 20})`
+    if (streak >= 5) ctx.shadowColor = `rgba(255,${255 - streak * 15 + 5},${255 - streak * 15 + 5},${0.4 + streak / 20})`
+    ctx.shadowBlur = 10;
+    ctx.fillText(streak, (canvas.width / 2) - ((streak.toString().length / 4) * 35), 40);
     ctx.shadowBlur = 0;
 
     if (pulseTimer > 0) {
@@ -96,6 +159,79 @@ function draw() {
         ctx.shadowBlur = 0;
         pulseTimer--;
     }
+
+    // === Goal Creases (Semi-circles) ===
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 2;
+
+    // Left goal crease
+    ctx.beginPath();
+    ctx.arc(0, canvas.height / 2, 150, -Math.PI / 2, Math.PI / 2, false);
+    ctx.stroke();
+
+    // Right goal crease
+    ctx.beginPath();
+    ctx.arc(canvas.width, canvas.height / 2, 150, Math.PI / 2, -Math.PI / 2, false);
+    ctx.stroke();
+
+    // Faceoff Dots Left and Right
+    ctx.fillStyle = '#666';
+    ctx.beginPath();
+    ctx.arc(canvas.width * 0.25, canvas.height / 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.beginPath();
+    ctx.arc(canvas.width * 0.75, canvas.height / 2, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Center circle
+    ctx.strokeStyle = "#444";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 150, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Optional: faceoff dot
+    ctx.fillStyle = "#888";
+    ctx.beginPath();
+    ctx.arc(canvas.width / 2, canvas.height / 2, 5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // === Border Lines ===
+    ctx.lineWidth = 4;
+    ctx.setLineDash([0, 0]);
+
+    ctx.strokeStyle = '#444';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(canvas.width, 0);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    ctx.lineTo(canvas.width, canvas.height);
+    ctx.stroke();
+
+    ctx.strokeStyle = '#444';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(0, canvas.height/2 - 150);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height);
+    ctx.lineTo(0, canvas.height/2 + 150);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(canvas.width, 0);
+    ctx.lineTo(canvas.width, canvas.height/2 - 150);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(canvas.width, canvas.height);
+    ctx.lineTo(canvas.width, canvas.height/2 + 150);
+    ctx.stroke();
 
     // Ball trail
     for (let i = 0; i < ball.trail.length; i++) {
@@ -115,6 +251,11 @@ function draw() {
     ctx.fillStyle = ball.flashColor ? `rgba(${ball.flashColor}, ${ball.flashAlpha})` : "cyan";
     ctx.fill();
     ctx.shadowBlur = 0;
+
+    ctx.font = twoPlayerMode ? '0px Arial' : '20px Arial';
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.fillText(`AI: ${aiDifficulty}`, canvas.width - 120, canvas.height - 20);
+
 
     // Player paddle
     ctx.shadowColor = "magenta";
@@ -153,6 +294,10 @@ function resetBall() {
     ball.speed = initialBallSpeed;
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
+    ai.x = canvas.width/4 * 3 - 7.5
+    ai.y = canvas.height/2 - 25
+    player.x = canvas.width/4 - 7.5
+    player.y = canvas.height/2 - 25
     ball.active = false;
     setTimeout(() => {
         if (!gameOver) {
@@ -192,6 +337,10 @@ function restartGame() {
     ball.speed = 30;
     ball.x = canvas.width / 2;
     ball.y = canvas.height / 2;
+    ai.x = canvas.width/4 * 3 - 7.5
+    ai.y = canvas.height/2 - 25
+    player.x = canvas.width/4 - 7.5
+    player.y = canvas.height/2 - 25
     randomizeDirection();
     draw();
     resetBall();
@@ -216,7 +365,7 @@ function moveBall() {
         resetBall();
         return;
     }
-    
+
     if (paused || gameOver || !ball.active) return;
 
     const steps = Math.min(Math.ceil(ball.speed / 5), 20); // Break fast movement into smaller steps
@@ -234,6 +383,29 @@ function moveBall() {
             break;
         }
 
+        if(ball.x - ball.radius <= 0){
+            if(ball.y + ball.radius >= canvas.height/2 + 150 || ball.y - ball.radius <= canvas.height/2 - 150){
+                const baseSpeed = Math.min(initialBallSpeed + streak * 1.2, 80);
+                ball.speed = baseSpeed;
+                ball.dx = baseSpeed;
+                ball.dy += (Math.random() - 0.5) * 2;
+                ball.x = 0 + ball.radius + 1;
+                ball.flashAlpha = 1;
+                break; // ✅ Exit loop after collision
+            }
+        }
+        if(ball.x + ball.radius >= canvas.width){
+            if(ball.y + ball.radius >= canvas.height/2 + 150 || ball.y - ball.radius <= canvas.height/2 - 150){
+                const baseSpeed = Math.min(initialBallSpeed + streak * 1.2, 80);
+                ball.speed = baseSpeed;
+                ball.dx = -baseSpeed;
+                ball.dy += (Math.random() - 0.5) * 2;
+                ball.x = canvas.width - ball.radius - 1;
+                ball.flashAlpha = 1;
+                break; // ✅ Exit loop after collision
+            }
+        }
+
         // === Player 1 Collision ===
         if (
             ball.x - ball.radius < player.x + player.width &&
@@ -243,7 +415,7 @@ function moveBall() {
         ) {
             playSound();
             streak++;
-            const baseSpeed = Math.min(initialBallSpeed + streak * 1.2, 80);
+            const baseSpeed = Math.min(initialBallSpeed + streak * 1.1, 80);
             ball.speed = baseSpeed;
             ball.dx = baseSpeed;
             ball.dy += (Math.random() - 0.5) * 2;
@@ -260,6 +432,7 @@ function moveBall() {
             ball.y - ball.radius < ai.y + ai.height
         ) {
             playSound();
+            if (twoPlayerMode) streak++
             const baseSpeed = Math.min(initialBallSpeed + streak * 1.2, 80);
             ball.speed = baseSpeed;
             ball.dx = -baseSpeed;
@@ -317,7 +490,7 @@ function move() {
         player.moveX = -player.moveSpeed;
     }
     if (keyStates.right) {
-        player.x = Math.min(canvas.width / 2 - player.width, player.x + player.moveSpeed);
+        player.x = Math.min(canvas.width / 2 - player.width - 5, player.x + player.moveSpeed);
         player.moveX = player.moveSpeed;
     }
 
@@ -346,7 +519,7 @@ function movePlayer2() {
         ai.moveX = -ai.moveSpeed;
     }
     if (keyStates.right) {
-        ai.x = Math.min(canvas.width / 2 - ai.width, ai.x + ai.moveSpeed);
+        ai.x = Math.min(canvas.width / 2 - ai.width - 5, ai.x + ai.moveSpeed);
         ai.moveX = ai.moveSpeed;
     }
 }
@@ -355,18 +528,33 @@ function movePlayer2() {
 function moveAI() {
     if (paused || gameOver || twoPlayerMode) return;
 
+    const { errorMargin, leadFactor, speed } = difficultySettings[aiDifficulty]
+    ai.speed = speed
+
     const center = ai.y + ai.height / 2;
-    const prediction = ball.y + ball.dy * 10; // predict 10 frames ahead
+    const centerX = ai.x + ai.width / 2;
+    const prediction = ball.y + ball.dy * leadFactor;  // predict x frames ahead
+    const xprediction = ball.x + ball.dx * leadFactor; // predict x frames ahead
 
     const targetY = prediction;
-    const errorMargin = 20; // more = worse AI
+    const targetX = xprediction;
     const diff = targetY - center;
+    const diffX = targetX - centerX;
+
 
     if (Math.abs(diff) > errorMargin) {
         ai.y += Math.sign(diff) * ai.speed;
     }
 
+    if (Math.abs(diffX) > errorMargin) {
+        ai.x += Math.sign(diffX) * ai.speed;
+    }
+
     ai.y = Math.max(0, Math.min(canvas.height - ai.height, ai.y));
+    const maxX = canvas.width - ai.width; // or canvas.width / 2 if limiting to one side
+    const minX = canvas.width / 2 + 5;        // center of the screen
+
+    ai.x = Math.max(minX, Math.min(maxX, ai.x));
 }
 
 
@@ -388,6 +576,10 @@ document.addEventListener('keydown', (e) => {
     if (key === 'k') keyStates.p2Down = true;
     if (key === 'j') keyStates.p2Left = true;
     if (key === 'l') keyStates.p2Right = true;
+
+    if (key === '1') aiDifficulty = 'easy';
+    if (key === '2') aiDifficulty = 'normal';
+    if (key === '3') aiDifficulty = 'hard';
 });
 
 document.addEventListener('keyup', (e) => {
@@ -438,7 +630,7 @@ canvas.addEventListener('touchmove', e => {
         if (id === paddleTouches.player1 && lastTouches.player1) {
             const deltaX = x - lastTouches.player1.x;
             const deltaY = y - lastTouches.player1.y;
-            player.x = Math.max(0, Math.min(canvas.width / 2 - player.width, player.x + deltaX));
+            player.x = Math.max(0, Math.min(canvas.width / 2 - player.width - 5, player.x + deltaX));
             player.y = Math.max(0, Math.min(canvas.height - player.height, player.y + deltaY));
             lastTouches.player1 = { x, y };
         }
@@ -447,7 +639,7 @@ canvas.addEventListener('touchmove', e => {
         if (id === paddleTouches.player2 && lastTouches.player2) {
             const deltaX = x - lastTouches.player2.x;
             const deltaY = y - lastTouches.player2.y;
-            ai.x = Math.max(canvas.width / 2, Math.min(canvas.width - ai.width, ai.x + deltaX));
+            ai.x = Math.max(canvas.width / 2 + 5, Math.min(canvas.width - ai.width, ai.x + deltaX));
             ai.y = Math.max(0, Math.min(canvas.height - ai.height, ai.y + deltaY));
             lastTouches.player2 = { x, y };
         }
@@ -470,6 +662,60 @@ canvas.addEventListener('touchend', e => {
     }
 });
 
+// SETTINGS MENU HOOKUP
+const settingsMenu = document.getElementById('settingsMenu');
+const openBtn = document.getElementById('openSettingsBtn');
+const aiSelect = document.getElementById('aiSelect');
+const twoPlayerToggle = document.getElementById('twoPlayerToggle');
+const muteToggle = document.getElementById('muteToggle');
+
+openBtn.addEventListener('click', () => {
+    settingsMenu.style.display = 'block';
+    paused = true;
+    draw(); // redraw with "Paused"
+    saveSettings();
+});
+
+openBtn.addEventListener('click', () => {
+    settingsMenu.classList.add('show');
+    paused = true;
+    draw();
+    saveSettings();
+});
+
+function closeSettings() {
+    settingsMenu.classList.remove('show');
+    paused = false;
+    saveSettings();
+}
+
+
+aiSelect.addEventListener('change', () => {
+    setDifficulty(aiSelect.value);
+    settings.aiDifficulty = aiSelect.value
+    saveSettings();
+});
+
+twoPlayerToggle.addEventListener('change', () => {
+    twoPlayerMode = twoPlayerToggle.checked;
+    settings.twoPlayerMode = twoPlayerMode
+    saveSettings();
+});
+
+muteToggle.addEventListener('change', () => {
+    muted = muteToggle.checked;
+    settings.muted = muted
+    saveSettings();
+});
+
+// Load saved settings on page load
+window.addEventListener('load', () => {
+    const saved = localStorage.getItem('aiDifficulty');
+    if (saved && difficultySettings[saved]) {
+        aiSelect.value = saved;
+        aiDifficulty = saved;
+    }
+});
 
 function gameLoop() {
     move();

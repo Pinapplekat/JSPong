@@ -1,12 +1,182 @@
-canvas{
+canvas {
     margin: 0;
     padding: 0;
 }
 
-body{
+body {
     margin: 0;
     padding: 0;
     background-color: black;
     overflow: hidden;
     max-height: 100vh;
 }
+
+#settingsMenu {
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(30, 30, 30, 0.95);
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #555;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    z-index: 1000;
+    width: 300px;
+    font-family: 'Segoe UI', sans-serif;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+#settingsMenu.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#settingsMenu h2 {
+    margin-top: 0;
+    font-size: 24px;
+    text-align: center;
+    color: cyan;
+}
+
+#settingsMenu label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 12px 0;
+    font-size: 16px;
+}
+
+#settingsMenu select,
+#settingsMenu input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+#settingsMenu button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 15px;
+    background: cyan;
+    border: none;
+    color: black;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#settingsMenu button:hover {
+    background: white;
+    color: black;
+}
+
+#openSettingsBtn {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: transparent;
+    border: none;
+    padding: 8px 14px;
+    font-size: 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 999;
+    color:rgba(255, 255, 255, 0.7);
+    font-weight: bold;
+}
+
+#openSettingsBtn:hover {
+    color:rgba(255, 255, 255, 0.5);
+}
+#settingsMenu input[type="checkbox"] {
+    display: none;
+  }
+  
+  #settingsMenu label input[type="checkbox"] + span {
+    position: relative;
+    padding-left: 30px;
+    cursor: pointer;
+    line-height: 24px;
+  }
+  
+  #settingsMenu label input[type="checkbox"] + span::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 22px;
+    height: 22px;
+    background: #222;
+    border: 2px solid cyan;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+  }
+  
+  #settingsMenu label input[type="checkbox"]:checked + span::before {
+    background: cyan;
+    box-shadow: 0 0 5px cyan;
+  }
+  
+  #settingsMenu label input[type="checkbox"]:checked + span::after {
+    content: '✓';
+    position: absolute;
+    left: 4px;
+    top: 0px;
+    font-size: 18px;
+    color: black;
+  }
+
+  #settingsMenu select {
+    background: #111;
+    border: 1px solid cyan;
+    border-radius: 6px;
+    color: cyan;
+    padding: 6px 10px;
+    font-size: 16px;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg width='14' height='10' viewBox='0 0 14 10' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='cyan' d='M1 1l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+  }
+  
+  #settingsMenu select:focus {
+    box-shadow: 0 0 8px cyan;
+  }
+  
+  #settingsMenu input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    max-width: 200px;
+    height: 6px;
+    background: #444;
+    border-radius: 5px;
+    outline: none;
+    transition: background 0.3s;
+  }
+  
+  #settingsMenu input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: cyan;
+    cursor: pointer;
+    box-shadow: 0 0 5px cyan;
+    transition: background 0.3s ease;
+  }
+  
+  #settingsMenu input[type="range"]::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: cyan;
+    cursor: pointer;
+    box-shadow: 0 0 5px cyan;
+  }
+  
