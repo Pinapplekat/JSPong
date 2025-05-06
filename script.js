@@ -12,11 +12,13 @@ let muted = false;
 let twoPlayerMode = false;
 let pulseTimer = 0;
 let volume = 50;
+let sensitivity = 50;
 
 let settings = {
     muted: false,
     aiDifficulty: 'normal',
-    twoPlayerMode: false
+    twoPlayerMode: false,
+    sensitivity: 0.5
 };
 
 function saveSettings() {
@@ -105,8 +107,13 @@ function loadSettings() {
             muted: false,
             aiDifficulty: 'normal',
             twoPlayerMode: false,
+            sensitivity: 50
         };
     }
+
+    sensitivity = settings.sensitivity;
+    document.getElementById('sensSlider').value = sensitivity
+    document.getElementById('sensValue').innerText = sensitivity+"%"
 
     muted = settings.muted;
     document.getElementById('muteToggle').checked = muted;
@@ -599,6 +606,27 @@ document.addEventListener('keyup', (e) => {
 let lastTouches = {}; // Store last positions for each paddle
 let paddleTouches = {}; // Track which touch controls which paddle
 
+let prevX = 0;
+let prevY = 0;
+
+canvas.addEventListener('click', () => {
+    canvas.requestPointerLock(); // Request pointer lock when the user clicks the canvas
+});
+
+document.addEventListener('mousemove', e => {
+    if (document.pointerLockElement === canvas) {
+        // Use raw movement deltas from Pointer Lock
+        player.x += e.movementX * (sensitivity / 100);
+        player.y += e.movementY * (sensitivity / 100);
+
+        // Clamp the player within canvas boundaries
+        player.x = Math.max(0, Math.min(player.x, canvas.width / 2 - player.width - ball.radius));
+        player.y = Math.max(0, Math.min(player.y, canvas.height - player.height));
+
+        draw(); // Redraw player
+    }
+})
+
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     for (let touch of e.changedTouches) {
@@ -668,6 +696,8 @@ const openBtn = document.getElementById('openSettingsBtn');
 const aiSelect = document.getElementById('aiSelect');
 const twoPlayerToggle = document.getElementById('twoPlayerToggle');
 const muteToggle = document.getElementById('muteToggle');
+const sensSlider = document.getElementById('sensSlider');
+const sensValue = document.getElementById('sensValue');
 
 openBtn.addEventListener('click', () => {
     settingsMenu.style.display = 'block';
@@ -693,6 +723,13 @@ function closeSettings() {
 aiSelect.addEventListener('change', () => {
     setDifficulty(aiSelect.value);
     settings.aiDifficulty = aiSelect.value
+    saveSettings();
+});
+
+sensSlider.addEventListener('input', () => {
+    sensitivity = sensSlider.value
+    sensValue.innerText = sensitivity+'%'
+    settings.sensitivity = sensSlider.value
     saveSettings();
 });
 
