@@ -23,23 +23,27 @@
                 <option value="impossible">Impossible</option>
             </select>
         </label>
-        <br><br>
+        <br>
 
         <label>
             <input type="checkbox" id="twoPlayerToggle" />
             <span>Two-Player Mode</span>
         </label>
-        <br><br>
+        <br>
 
         <label>
             <input type="checkbox" id="muteToggle" />
             <span>Mute SFX</span>
         </label>
-        <br><br>
+        <br>
 
         <label for="sensSlider">Mouse Sensitvity</label>
         <input type="range" min="1" value="50" step="1" max="200" id="sensSlider" name="sensSlider" />
         <span id="sensValue">50%</span>
+        <br>
+        <label for="winConSlider">Win Condition</label>
+        <input type="range" min="1" value="10" step="1" max="100" id="winConSlider" name="winConSlider" />
+        <span id="winConValue">10 Wins</span>
         <br><br>
 
         <button onclick="closeSettings()">Close</button>

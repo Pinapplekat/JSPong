@@ -13,12 +13,14 @@ let twoPlayerMode = false;
 let pulseTimer = 0;
 let volume = 50;
 let sensitivity = 50;
+let winningScore = 10;
 
 let settings = {
     muted: false,
     aiDifficulty: 'normal',
     twoPlayerMode: false,
-    sensitivity: 0.5
+    sensitivity: 0.5,
+    winningScore: 10
 };
 
 function saveSettings() {
@@ -39,7 +41,6 @@ if (savedDifficulty && difficultySettings[savedDifficulty]) {
 
 loadSettings();
 
-const winningScore = 10;
 const blip = new Audio('blip.wav');
 
 const keyStates = {
@@ -107,9 +108,15 @@ function loadSettings() {
             muted: false,
             aiDifficulty: 'normal',
             twoPlayerMode: false,
-            sensitivity: 50
+            sensitivity: 50,
+            winningScore: 10
         };
     }
+
+    winningScore = settings.winningScore;
+    document.getElementById('winConSlider').value = winningScore
+    var scoreIsOne = winningScore == 1
+    document.getElementById('winConValue').innerText = scoreIsOne ? winningScore+' score' : winningScore+' scores'
 
     sensitivity = settings.sensitivity;
     document.getElementById('sensSlider').value = sensitivity
@@ -288,11 +295,10 @@ function draw() {
 
     if (gameOver) {
         ctx.font = '64px Arial';
-        const msg = score >= winningScore ? "You Win!" : "Opponent Wins!";
-        ctx.fillText("Game Over", canvas.width / 2 - 150, canvas.height / 2 - 50);
-        ctx.fillText(msg, canvas.width / 2 - 130, canvas.height / 2 + 50);
+        const msg = score >= winningScore ? "You Win" : "Opponent Wins";
+        ctx.fillText(msg, (canvas.width / 2) - ((msg.length / 4) * 64), canvas.height / 2 - 30);
         ctx.font = '32px Arial';
-        ctx.fillText("Press R to restart", canvas.width / 2 - 120, canvas.height / 2 + 100);
+        ctx.fillText("Press anywhere to restart", canvas.width / 2 - 180, canvas.height / 2 + 40);
     }
 }
 
@@ -568,8 +574,9 @@ function moveAI() {
 document.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
     if (key === 'escape') return togglePause();
+    if(gameOver) return restartGame();
     if ((key === 'p' || key === 'enter') && paused && !gameOver) return paused = false;
-    if (key === 'r' && gameOver) return restartGame();
+    if (key === 'r') return restartGame();
     if (key === 'm') muted = !muted;
     if (key === 't') twoPlayerMode = !twoPlayerMode;
 
@@ -610,6 +617,7 @@ let prevX = 0;
 let prevY = 0;
 
 canvas.addEventListener('click', () => {
+    if(gameOver) return restartGame();
     canvas.requestPointerLock(); // Request pointer lock when the user clicks the canvas
 });
 
@@ -629,6 +637,7 @@ document.addEventListener('mousemove', e => {
 
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
+    if(gameOver) return restartGame();
     for (let touch of e.changedTouches) {
         const x = touch.clientX;
         const y = touch.clientY;
@@ -698,18 +707,23 @@ const twoPlayerToggle = document.getElementById('twoPlayerToggle');
 const muteToggle = document.getElementById('muteToggle');
 const sensSlider = document.getElementById('sensSlider');
 const sensValue = document.getElementById('sensValue');
+const winConSlider = document.getElementById('winConSlider');
+const winConValue = document.getElementById('winConValue');
+
+var settingsOpened = false
 
 openBtn.addEventListener('click', () => {
+    settingsOpened = !settingsOpened
+    if(!settingsOpened) {
+        settingsMenu.classList.remove('show');
+        paused = false;
+        saveSettings();
+        return
+    }
     settingsMenu.style.display = 'block';
-    paused = true;
-    draw(); // redraw with "Paused"
-    saveSettings();
-});
-
-openBtn.addEventListener('click', () => {
     settingsMenu.classList.add('show');
     paused = true;
-    draw();
+    draw(); // redraw with "Paused"
     saveSettings();
 });
 
@@ -723,6 +737,14 @@ function closeSettings() {
 aiSelect.addEventListener('change', () => {
     setDifficulty(aiSelect.value);
     settings.aiDifficulty = aiSelect.value
+    saveSettings();
+});
+
+winConSlider.addEventListener('input', () => {
+    winningScore = winConSlider.value
+    var scoreIsOne = winningScore == 1
+    winConValue.innerText = scoreIsOne ? winningScore+' score' : winningScore+' scores'
+    settings.winningScore = winConSlider.value
     saveSettings();
 });
 
