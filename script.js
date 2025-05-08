@@ -8,20 +8,18 @@ let aiscore = 0;
 let streak = 0;
 let paused = false;
 let gameOver = false;
-let muted = false;
-let twoPlayerMode = false;
 let pulseTimer = 0;
-let volume = 50;
-let sensitivity = 50;
-let winningScore = 10;
 
 let settings = {
     muted: false,
     aiDifficulty: 'normal',
     twoPlayerMode: false,
     sensitivity: 0.5,
-    winningScore: 10
+    winningScore: 10,
+    paddleSize: 'normal'
 };
+
+let {muted, twoPlayerMode, sensitivity, winningScore, paddleSize} = settings;
 
 function saveSettings() {
     localStorage.setItem('pongSettings', JSON.stringify(settings));
@@ -30,8 +28,15 @@ function saveSettings() {
 const difficultySettings = {
     easy: { leadFactor: 3, errorMargin: 80, speed: 5 },
     normal: { leadFactor: 6, errorMargin: 45, speed: 8 },
-    hard: { leadFactor: 10, errorMargin: 15, speed: 12 },
-    impossible: { leadFactor: 1, errorMargin: 0, speed: 30 }
+    hard: { leadFactor: 6, errorMargin: 15, speed: 12 },
+    impossible: { leadFactor: 3, errorMargin: 5, speed: 20 }
+};
+
+const paddleSizes = {
+    small: 40,
+    medium: 60,
+    large: 85,
+    larger: 100
 };
 
 const savedDifficulty = localStorage.getItem('aiDifficulty');
@@ -59,7 +64,7 @@ const player = {
     x: canvas.width / 4 - 15/2,
     y: canvas.height / 2 - 15,
     width: 15,
-    height: 50,
+    height: paddleSizes[paddleSize],
     moveSpeed: 25
 };
 
@@ -67,7 +72,7 @@ const ai = {
     x: canvas.width / 4 * 2 + 15/2,
     y: canvas.height / 2 - 15,
     width: 15,
-    height: 50,
+    height: paddleSizes[paddleSize],
     speed: 25
 };
 
@@ -92,6 +97,18 @@ function setDifficulty(level) {
     }
 }
 
+function setPaddleSize(size) {
+    if (paddleSizes[size]) {
+        paddleSize = size;
+        player.height = paddleSizes[paddleSize]
+        ai.height = paddleSizes[paddleSize]
+    }else{
+        paddleSize = 'medium'
+        player.height = paddleSizes[paddleSize]
+        ai.height = paddleSizes[paddleSize]
+    }
+}
+
 function playSound() {
     if (!muted) {
         new Audio('blip.wav').play();
@@ -109,7 +126,8 @@ function loadSettings() {
             aiDifficulty: 'normal',
             twoPlayerMode: false,
             sensitivity: 50,
-            winningScore: 10
+            winningScore: 10,
+            paddleSize: 'medium'
         };
     }
 
@@ -127,6 +145,10 @@ function loadSettings() {
 
     aiDifficulty = settings.aiDifficulty;
     document.getElementById('aiSelect').value = aiDifficulty;
+
+    paddleSize = settings.paddleSize;
+    // setPaddleSize(paddleSize)
+    document.getElementById('paddleSizeSelect').value = paddleSize;
 
     twoPlayerMode = settings.twoPlayerMode;
     document.getElementById('twoPlayerToggle').checked = twoPlayerMode;
@@ -321,7 +343,7 @@ function resetBall() {
 }
 
 function randomizeDirection() {
-    const angle = Math.random() * Math.PI / 3 - Math.PI / 6;
+    const angle = Math.random() * Math.PI / 3 - Math.PI / 12;
     const directionX = Math.random() < 0.5 ? -1 : 1;
     ball.dx = directionX * ball.speed * Math.cos(angle);
     ball.dy = ball.speed * Math.sin(angle);
@@ -476,10 +498,6 @@ function moveBall() {
     ball.trail.push({ x: ball.x, y: ball.y, alpha: 1 });
     if (ball.trail.length > 40) ball.trail.shift();
 }
-
-
-
-
 
 function move() {
     if (paused || gameOver) return;
@@ -703,6 +721,7 @@ canvas.addEventListener('touchend', e => {
 const settingsMenu = document.getElementById('settingsMenu');
 const openBtn = document.getElementById('openSettingsBtn');
 const aiSelect = document.getElementById('aiSelect');
+const paddleSizeSelect = document.getElementById('paddleSizeSelect');
 const twoPlayerToggle = document.getElementById('twoPlayerToggle');
 const muteToggle = document.getElementById('muteToggle');
 const sensSlider = document.getElementById('sensSlider');
@@ -737,6 +756,12 @@ function closeSettings() {
 aiSelect.addEventListener('change', () => {
     setDifficulty(aiSelect.value);
     settings.aiDifficulty = aiSelect.value
+    saveSettings();
+});
+
+paddleSizeSelect.addEventListener('change', () => {
+    setPaddleSize(paddleSizeSelect.value);
+    settings.paddleSize = paddleSizeSelect.value
     saveSettings();
 });
 
